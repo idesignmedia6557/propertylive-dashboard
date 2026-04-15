@@ -4,9 +4,10 @@ import { supabase } from '../lib/supabase';
 interface Agent {
   id: string;
   label: string;
+  model: string;
+  mode: string;
   status: string;
   last_run: string | null;
-  error_count: number;
 }
 
 export default function AgentList() {
@@ -19,7 +20,7 @@ export default function AgentList() {
       try {
         const { data, error } = await supabase
           .from('agents')
-          .select('id, label, status, last_run, error_count')
+          .select('id, label, model, mode, status, last_run')
           .order('label');
 
         if (error) throw error;
@@ -47,6 +48,7 @@ export default function AgentList() {
   const statusColor = (status: string) => {
     if (status === 'active') return 'text-green-400';
     if (status === 'error') return 'text-red-400';
+    if (status === 'ready') return 'text-blue-400';
     return 'text-yellow-400';
   };
 
@@ -72,28 +74,28 @@ export default function AgentList() {
     <div className="w-full">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-gray-200">Agent Fleet</h3>
-        <span className="text-xs text-gray-500 bg-gray-800 px-2 py-1 rounded">{agents.length} agents</span>
+        <span className="text-xs text-gray-500 bg-gray-800 px-2 py-1 rounded">{agents.length} agents online</span>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="text-left text-gray-500 border-b border-gray-700">
               <th className="pb-2 pr-4">Agent</th>
+              <th className="pb-2 pr-4">Model</th>
+              <th className="pb-2 pr-4">Mode</th>
               <th className="pb-2 pr-4">Status</th>
-              <th className="pb-2 pr-4">Last Run</th>
-              <th className="pb-2">Errors</th>
+              <th className="pb-2">Last Run</th>
             </tr>
           </thead>
           <tbody>
             {agents.map((agent) => (
               <tr key={agent.id} className="border-b border-gray-800 hover:bg-gray-800/50 transition-colors">
                 <td className="py-3 pr-4 text-gray-200 font-medium">{agent.label}</td>
+                <td className="py-3 pr-4 text-gray-400 text-xs font-mono">{agent.model}</td>
+                <td className="py-3 pr-4 text-gray-400 capitalize">{agent.mode}</td>
                 <td className={`py-3 pr-4 font-semibold capitalize ${statusColor(agent.status)}`}>{agent.status}</td>
-                <td className="py-3 pr-4 text-gray-400 text-xs">
+                <td className="py-3 text-gray-400 text-xs">
                   {agent.last_run ? new Date(agent.last_run).toLocaleString() : 'Never'}
-                </td>
-                <td className={`py-3 font-mono ${agent.error_count > 0 ? 'text-red-400' : 'text-gray-500'}`}>
-                  {agent.error_count ?? 0}
                 </td>
               </tr>
             ))}
